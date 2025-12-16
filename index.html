@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+    <title>Birthday Surprise - For My Rasmalai</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Dancing+Script:wght=600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        /* --- CORE RESET AND STRUCTURE --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(120deg, #fccb90 0%, #d57eeb 100%); 
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            color: #fff;
+            text-align: center;
+            position: relative;
+        }
+        
+        /* --- HEART DECORATIONS --- */
+        .heart-deco {
+            position: absolute;
+            font-size: 20px;
+            color: #ffb6c1;
+            pointer-events: none;
+            opacity: 0.8;
+            z-index: 1;
+        }
+        .heart-deco:nth-child(1) { top: 10%; left: 5%; transform: rotate(15deg); }
+        .heart-deco:nth-child(2) { bottom: 20%; left: 15%; transform: rotate(-25deg); }
+        .heart-deco:nth-child(3) { top: 20%; right: 5%; transform: rotate(-5deg); }
+        .heart-deco:nth-child(4) { bottom: 5%; right: 10%; transform: rotate(35deg); }
+
+
+        .container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            color: #fff;
+        }
+        
+        .section {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            width: 100%;
+        }
+
+        .section.active {
+            display: block;
+            opacity: 1;
+            animation: fadeIn 0.8s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            background: white;
+            color: #d57eeb;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 10px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            background: #fff0f5;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* --- AGE INPUT CUSTOM STYLE --- */
+        #age-input {
+            padding: 20px 10px;
+            border-radius: 15px;
+            border: 3px solid #ffeb3b; 
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            font-size: 2.5rem; 
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 30px;
+            width: 70%;
+            max-width: 200px;
+            box-shadow: 0 0 10px rgba(255, 235, 59, 0.5); 
+            transition: all 0.3s ease;
+        }
+        #age-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.5rem;
+        }
+        
+        /* --- MIRROR OF MEMORIES CAROUSEL STYLING --- */
+        #mirror-carousel {
+            position: relative;
+            width: 90%;
+            max-width: 450px;
+            height: 350px; 
+            margin: 20px auto;
+            perspective: 800px;
+            overflow: hidden;
+        }
+
+        .carousel-track {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.6s ease-in-out;
+        }
+        
+        .memory-card {
+            position: absolute;
+            width: 200px;
+            height: 300px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transition: all 0.6s ease-in-out;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .memory-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            z-index: 1;
+        }
+        
+        .memory-card.active {
+            width: 250px;
+            height: 350px;
+            opacity: 1;
+            z-index: 10;
+            transform: translate(-50%, -50%) scale(1) rotateY(0deg);
+        }
+
+        .memory-card.next {
+            opacity: 0.4;
+            z-index: 5;
+            transform: translate(50%, -50%) scale(0.85) rotateY(-15deg);
+        }
+
+        .memory-card.prev {
+            opacity: 0.4;
+            z-index: 5;
+            transform: translate(-150%, -50%) scale(0.85) rotateY(15deg);
+        }
+        
+        .memory-card.hidden {
+            opacity: 0;
+            z-index: 1;
+            transform: translate(0, -50%) scale(0.5);
+            pointer-events: none;
+        }
+        
+        .card-caption {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+            padding: 8px 10px;
+            font-size: 0.9rem;
+            text-shadow: 1px 1px 2px black;
+            text-align: center;
+            z-index: 2;
+        }
+        
+        #quote-display {
+            padding: 15px;
+            width: 100%;
+            text-align: center;
+            min-height: 50px;
+            color: white;
+        }
+
+        .quote-text {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            line-height: 1.4;
+            color: #fff;
+            min-height: 50px;
+        }
+
+        .quote-author {
+            font-size: 0.9rem;
+            margin-top: 5px;
+            color: #ffeb3b;
+        }
+        
+        .carousel-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            color: #d57eeb;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 20;
+            transition: background 0.2s;
+        }
+
+        .carousel-nav-btn:hover {
+            background: white;
+        }
+
+        #prev-btn-carousel { left: 10px; }
+        #next-btn-carousel { right: 10px; }
+
+        /* --- CAKE & CANDLE STYLING --- */
+        #cake-display {
+            position: relative;
+            width: 300px;
+            height: 400px; 
+            margin: 30px auto 0;
+        }
+        
+        #cake-display img {
+            background-color: transparent !important;
+            display: block;
+            z-index: 40;
+        }
+
+        #cake-base-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: opacity 0.5s ease;
+        }
+
+        #candles-container {
+            position: absolute;
+            top: 30%; 
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0px; 
+            z-index: 10;
+        }
+
+        .candle-unit {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: -15px; 
+        }
+        
+        .candle-digit-img {
+            width: 40px; 
+            height: auto;
+            transform: translateY(5px);
+        }
+
+        .flame {
+            position: absolute;
+            top: -12px; 
+            width: 12px;
+            height: 20px;
+            background: orange;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: 0 0 5px 3px yellow, 0 0 10px 6px rgba(255,165,0,0.5);
+            animation: flicker 0.2s infinite alternate;
+            transition: opacity 0.3s ease;
+            z-index: 11;
+        }
+        
+        @keyframes flicker {
+            0% { transform: scaleY(1); opacity: 0.95; }
+            50% { transform: scaleY(0.98); opacity: 1; box-shadow: 0 0 4px 2px yellow, 0 0 8px 4px rgba(255,165,0,0.4); }
+            100% { transform: scaleY(1.02); opacity: 0.95; }
+        }
+
+        .flame.off {
+            opacity: 0 !important; 
+            box-shadow: none !important; 
+        }
+        
+        #knife-img {
+            position: absolute;
+            top: -200px; 
+            left: 50%;
+            transform: translateX(-50%) rotate(0deg); 
+            width: 180px; 
+            height: auto;
+            opacity: 0;
+            transition: all 1.5s cubic-bezier(0.17, 0.84, 0.44, 1); 
+            z-index: 9999;
+            border: none; 
+        }
+
+        #knife-img.cutting {
+            top: 60%;
+            opacity: 1;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* --- BULLY CERTIFICATE STYLE --- */
+        .certificate {
+            background: #fff;
+            color: #d57eeb;
+            padding: 30px 20px;
+            border: 5px dashed #ffeb3b;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .certificate h2 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.2rem;
+            color: #ff5722;
+            margin-bottom: 10px;
+        }
+
+        .certificate p {
+            font-size: 1.1rem;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .certificate .signature {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.8rem;
+            color: #d57eeb;
+        }
+
+        /* --- QUIZ STYLES --- */
+        .question-options button {
+            display: block;
+            width: 90%;
+            margin: 10px auto;
+            text-align: center;
+            padding: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+        
+        /* Message/Final text styles */
+        #typing-text-2, #typing-text-thankyou, #typing-text-final {
+            color: #fff;
+        }
+        
+        .feedback-video {
+            width: 90%;
+            max-width: 300px;
+            height: auto;
+            margin: 20px auto;
+            border-radius: 10px;
+            display: block;
+        }
+        
+        /* --- 3D CYLINDER STYLES (FIXED) --- */
+        #cylinder-container {
+            width: 300px;
+            height: 300px;
+            margin: 40px auto;
+            perspective: 1200px; 
+            position: relative;
+            overflow: visible; 
+            /* FIX 1: Added touch-action to prevent browser scrolling/zooming */
+            touch-action: none; 
+        }
+
+        .cylinder {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            transform: rotateX(-15deg) rotateY(0deg); 
+            animation: spinCylinder 30s infinite linear; 
+            cursor: grab;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.5s ease-out; 
+        }
+
+        .cylinder.paused {
+            animation: none !important; 
+        }
+
+        @keyframes spinCylinder {
+            from { transform: rotateX(-15deg) rotateY(0deg); }
+            to { transform: rotateX(-15deg) rotateY(360deg); }
+        }
+
+        .photo-card {
+            position: absolute;
+            width: 150px; 
+            height: 200px; 
+            border: 5px solid white;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+            background: white;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transform-origin: center; 
+            transition: transform 0.5s ease-out;
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .card-1 { transform: rotateY(0deg) translateZ(250px); }
+        .card-2 { transform: rotateY(60deg) translateZ(250px); }
+        .card-3 { transform: rotateY(120deg) translateZ(250px); }
+        .card-4 { transform: rotateY(180deg) translateZ(250px); }
+        .card-5 { transform: rotateY(240deg) translateZ(250px); }
+        .card-6 { transform: rotateY(300deg) translateZ(250px); }
+        
+        .central-text {
+            position: absolute;
+            z-index: 100; 
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5rem;
+            line-height: 1.2;
+            color: #4dc2f8;
+            text-shadow: 1px 1px 0px white, 2px 2px 5px rgba(0, 0, 0, 0.5);
+            transform: translateZ(50px);
+            text-align: center;
+        }
+        
+    </style>
+</head>
+<body>
+    <span class="heart-deco">💖</span>
+    <span class="heart-deco">❤️</span>
+    <span class="heart-deco">💖</span>
+    <span class="heart-deco">❤️</span>
+
+    <audio id="slideshow-music" loop playsinline>
+        <source src="bday_song.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="mixtape-song" loop playsinline>
+        <source src="romantic_song.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="gallery-music" loop playsinline>
+        <source src="3d_gallery_song.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <div class="container">
+        
+        <div id="landing" class="section active">
+            <h1>Happy Birthday! 🎁</h1>
+            <p>Ready for the ultimate surprise? Click below!</p>
+            <button class="btn" onclick="initializeApp(); nextPage('landing', 'age-input-section');">Start Celebration 🎉</button>
+        </div>
+
+        <div id="age-input-section" class="section">
+            <h1>How old are you today? 🥳</h1>
+            <input type="number" id="age-input" placeholder="Age" min="1" max="99" maxlength="2">
+            <button class="btn" onclick="setAgeAndCandles();">Set Candles</button>
+            <p id="age-error" style="color:red; margin-top: 10px;"></p>
+        </div>
+
+        <div id="cake-section" class="section">
+            <h1>Make a Wish! 🕯</h1>
+            <div id="cake-display">
+                <img id="cake-base-img" src="chocolate-cake-base.jpg" alt="A delicious chocolate birthday cake">
+                <div id="candles-container"></div>
+                <img id="knife-img" src="knife-new.png" alt="Cake Knife">
+            </div>
+
+            <p id="action-text" style="margin-top: 40px; font-weight: 600;">Tap and hold the button for 1.3 seconds to "blow" out the candle! 🌬</p>
+            
+            <div class="button-group">
+                <button id="blow-btn" class="btn" 
+                        ontouchstart="startBlowTimer();" ontouchend="cancelActionTimer('blow');" 
+                        onmousedown="startBlowTimer();" onmouseup="cancelActionTimer('blow');">
+                    BLOW 🔥
+                </button>
+                
+                <button id="cut-btn" class="btn" style="display:none;" disabled
+                        ontouchstart="startCutTimer();" ontouchend="cancelActionTimer('cut');" 
+                        onmousedown="startCutTimer();" onmouseup="cancelActionTimer('cut');">
+                    CUT 🔪
+                </button>
+            </div>
+        </div>
+        
+        <div id="message-reveal" class="section">
+            <h1>The Sweetest Part! 💌</h1>
+            <div id="typing-text-2" style="font-size: 1.1rem; min-height: 150px; text-align: left; padding: 0 10px;"></div>
+            <button class="btn" onclick="nextPage('message-reveal', 'transition-page');" style="margin-top: 20px;">Next Surprise ➡️</button>
+        </div>
+
+        <div id="transition-page" class="section">
+            <h1>Wait! The Fun Isn't Over Yet! 🎉</h1>
+            <p style="font-size: 1.2rem; margin-bottom: 30px;">
+                Ready for a trip down memory lane? 📸
+            </p>
+            <button class="btn" onclick="nextPage('transition-page', 'cylinder-gallery');">YES! Take Me There 💖</button>
+        </div>
+        
+        <div id="cylinder-gallery" class="section">
+            <h1>Our Moments in 3D! 🤩</h1>
+            <p style="margin-bottom: 20px; font-weight: 500;">Rotate the carousel to see us from every side! 😉</p>
+            
+            <div id="cylinder-container">
+                <div class="cylinder">
+                    <div class="central-text">HAPPY BIRTHDAY<br>KHUSHIIEEEEEE❤️</div>
+                    <div class="photo-card card-1"><img src="carousel-photo-1.jpeg" alt="Carousel Photo 1"></div>
+                    <div class="photo-card card-2"><img src="carousel-photo-2.jpeg" alt="Carousel Photo 2"></div>
+                    <div class="photo-card card-3"><img src="carousel-photo-3.jpeg" alt="Carousel Photo 3"></div>
+                    <div class="photo-card card-4"><img src="carousel-photo-4.jpeg" alt="Carousel Photo 4"></div>
+                    <div class="photo-card card-5"><img src="carousel-photo-5.jpeg" alt="Carousel Photo 5"></div>
+                    <div class="photo-card card-6"><img src="carousel-photo-6.jpeg" alt="Carousel Photo 6"></div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="nextPage('cylinder-gallery', 'bully-certificate-page');" id="cylinder-next-btn">Official Business 📜</button>
+        </div>
+        <div id="bully-certificate-page" class="section">
+            <h1>Official Declaration! 🏆</h1>
+            <div class="certificate">
+                <h2>Certificate of Supreme Bullying</h2>
+                <p>This is to certify that **My Rasmalai** is hereby officially recognized as the **Master Bully** (A.K.A. The Cutest Bully) of My Life.</p>
+                <p>Her dedication to making fun of my cringe-worthy first question ("Do you know me?") sets a benchmark for all future teasing.</p>
+                <p>This title is granted for the year, with a lifetime guarantee of my love and willingness to be bullied. Congratulations! 😉</p>
+                <div class="signature">— Your Munchkin Apple 🍎</div>
+            </div>
+            
+            <button class="btn" onclick="nextPage('bully-certificate-page', 'memories');" style="margin-top: 20px;">Continue to Memories 💖</button>
+        </div>
+        <div id="memories" class="section">
+            <h1>Mirror of Memories 📸</h1>
+            
+            <div id="mirror-carousel">
+                <div class="carousel-track">
+                    </div>
+                <button class="carousel-nav-btn" onclick="prevMemory();" id="prev-btn-carousel" disabled>&#x276E;</button>
+                <button class="carousel-nav-btn" onclick="nextMemory();" id="next-btn-carousel">	&#x276F;</button>
+            </div>
+            
+            <div id="quote-display">
+                <p id="love-quote-text" class="quote-text">Loading the sweetest memory...</p>
+                <p class="quote-author">— Your Munchkin Apple ❤️</p>
+            </div>
+            
+            <button class="btn" onclick="nextPage('memories', 'game-ready-page');" id="memories-next-btn" style="margin-top: 20px; display:none;">Next Level 🎮</button>
+        </div>
+        <div id="game-ready-page" class="section">
+            <h1>Now, Let's Play A Game! 🤩</h1>
+            <p style="font-size: 1.2rem; margin-bottom: 30px;">
+                I'm going to test how well you remember things about *us* 😉
+            </p>
+            <p style="font-size: 1.5rem; font-weight: 600; color: #ffeb3b; text-shadow: 1px 1px 2px #d57eeb;">
+                Are you ready?
+            </p>
+            <button class="btn" onclick="nextPage('game-ready-page', 'q1');">Yes, I'm Ready! 💪</button>
+            <button class="btn" onclick="nextPage('game-ready-page', 'q1');">Let's Start! 🔥</button>
+        </div>
+        
+        <div id="q1" class="section">
+            <h2>Question 1 of 7 🤔</h2>
+            <p class="question-text">When and where did our **first meeting** take place?</p>
+            <div class="question-options">
+                <button class="btn" onclick="checkAnswer(1, 1);">June 8th at Coffee Concept (A)</button>
+                <button class="btn" onclick="checkAnswer(1, 2);">July 8th at Coffee Concept (B)</button>
+                <button class="btn" onclick="checkAnswer(1, 3);">August 8th at Coffee Concept (C)</button>
+            </div>
+        </div>
+        
+        <div id="q2" class="section">
+            <h2>Question 2 of 7 🤔</h2>
+            <p class="question-text">Do you think we were destined to meet?</p>
+            <div class="question-options">
+                <button class="btn" onclick="checkAnswer(2, 1);">Yes, absolutely! ❤️</button>
+                <button class="btn" onclick="checkAnswer(2, 2);">No, it was just luck. 🍀</button>
+            </div>
+        </div>
+        
+        <div id="q3" class="section">
+            <h2>Question 3 of 7 🤔</h2>
+            <p class="question-text">Do you secretly enjoy my silly messages?</p>
+            <div class="question-options">
+                <button class="btn" onclick="checkAnswer(3, 1);">Yes</button>
+                <button class="btn" onclick="checkAnswer(3, 2);">No</button>
+            </div>
+        </div>
+
+        <div id="q4" class="section">
+            <h2>Question 4 of 7 🤔</h2>
+            <p class="question-text">Do you think I’m a little too crazy about you?</p>
+            <div class="question-options">
+                <button class="btn" onclick="checkAnswer(4, 1);">Yes</button>
+                <button class="btn" onclick="checkAnswer(4, 2);">No</button>
+            </div>
+        </div>
+        
+        <div id="song-break" class="section">
+            <h1>Time for a Mid-Quiz Break! 🎧</h1>
+            <p style="font-size: 1.2rem; margin: 30px 0;">
+                Listen to this song, I dedicated it to you. ❤️
+            </p>
+            <p style="font-size: 1.5rem; font-weight: 600; color: #ffeb3b; text-shadow: 1px 1px 2px #d57eeb;">
+                Your Song is Ready!
+            </p>
+            <div id="music-action-buttons" style="margin-top: 30px;">
+                <button class="btn" onclick="toggleMixtapeMusic(true);">Play Song ▶️</button>
+                <button class="btn" onclick="toggleMixtapeMusic(false);">Stop Song ⏹️</button>
+            </div>
+            
+            <button class="btn" onclick="nextPage('song-break', 'q5');" style="margin-top: 30px;">Continue Quiz ➡️</button>
+        </div>
+        <div id="q5" class="section">
+            <h2>Question 5 of 7 🤔</h2>
+            <p class="question-text">Would you like me to steal a hug from you someday?</p>
+            <div class="question-options">
+                <button class="btn" onclick="checkAnswer(5, 1);">Yes</button>
+                <button class="btn" onclick="checkAnswer(5, 2);">No</button>
+            </div>
+        </div>
+        
+        <div id="q6" class="section">
+            <h2>Question 6 of 7 🤔</h2>
+            <p class="question-text">Do you like that I call you my Rasmalaiii?</p>
+            <div class="question-options">
+                <button class="btn" onclick="checkAnswer(6, 1);">Yes</button>
+                <button class="btn" onclick="checkAnswer(6, 2);">No</button>
+            </div>
+        </div>
+
+        <div id="q7" class="section">
+            <h2>The Most Special Question! 👑</h2>
+            <p class="question-text">Out of all the sweet nicknames **you've given me**, which one do you think **I** love the most? (The One I Secretly Love the Most... 😉)</p>
+            <div class="question-options">
+                <button class="btn" onclick="checkAnswer(7, 1);">Januuu</button>
+                <button class="btn" onclick="checkAnswer(7, 2);">Cutuuu Babyyy</button>
+                <button class="btn" onclick="checkAnswer(7, 3);">You Are My Munchkin Apple</button>
+                <button class="btn" onclick="checkAnswer(7, 4);">Chirkuttt</button>
+            </div>
+        </div>
+        
+        <div id="wrong-answer-feedback" class="section">
+            <h1 id="wrong-feedback-title">Oh No! 😿</h1>
+            <p id="wrong-feedback-text" style="font-size: 1.2rem; margin-bottom: 20px;">
+                Try to guess a little better! 😥
+            </p>
+            <video id="feedback-video-sad" class="feedback-video" src="sad_kitty.mp4" loop playsinline></video>
+            <video id="feedback-video-almost" class="feedback-video" src="almost_correct_kitty.mp4" loop playsinline style="display:none;"></video>
+
+            <p style="font-weight: 600;" id="wrong-retry-prompt">Try Again!</p>
+            <button class="btn" id="retry-btn" onclick="retryQuestion();">Go Back & Try Again</button>
+        </div>
+
+        <div id="correct-answer-feedback" class="section">
+            <h1 id="correct-feedback-title">Right guess! You win 7 Crore! 😎</h1>
+            <p id="correct-feedback-text" style="font-size: 1.2rem; margin-bottom: 20px; font-weight: 600;">
+                <span style="color:#ffeb3b; text-shadow: 1px 1px 2px #d57eeb;">Every guess you make is perfect!</span>
+            </p>
+            <video id="feedback-video-dance" class="feedback-video" src="dancing_kitty.mp4" loop playsinline></video>
+            <video id="feedback-video-special" class="feedback-video" src="special_kitty.mp4" loop playsinline style="display:none;"></video>
+            
+            <button class="btn" id="next-q-btn" onclick="nextQuestion();">Next Question ➡️</button>
+        </div>
+        
+        <div id="q7-thank-you" class="section">
+            <h1 style="color: #ffeb3b; text-shadow: 1px 1px 2px #d57eeb;">My Heart is Full! 🥹</h1>
+            <div id="typing-text-thankyou" style="font-size: 1.1rem; min-height: 200px; text-align: left; padding: 0 10px; margin-top: 20px;"></div>
+            <button class="btn" onclick="nextPage('q7-thank-you', 'final-results');" style="margin-top: 20px;">Final Surprise! 🎁</button>
+        </div>
+
+
+        <div id="final-results" class="section">
+            <h1>Happy Birthday! 🎉</h1>
+            <p style="font-size: 1.5rem; margin-bottom: 20px;">You are my ultimate Quiz Master! ❤️</p>
+            <div id="typing-text-final" style="font-size: 1.1rem; min-height: 100px; text-align: left;"></div>
+        </div>
+        
+
+    </div>
+
+    <script>
+        
+        // --- QUIZ LOGIC VARIABLES ---
+        let score = 0;
+        let currentQuestion = 1;
+        
+        const CORRECT_ANSWERS = {
+            1: 2, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1,
+        };
+        
+        const CUSTOM_CORRECT_TEXTS = {
+            1: {
+                title: "You Got It! (Before the cringe!) 😂",
+                text: "Yes, it was July 8th at Coffee Concept! The day that started with my cringe-worthy question: 'Do you know me?' Thank God you didn't run away! 💖",
+            },
+            2: {
+                title: "I KNEW IT! 😌",
+                text: "Fate is always on our side! We were absolutely meant to cross paths. No cap! ✨",
+            },
+            3: {
+                title: "Aww, I’m glad! 😍",
+                text: "Keep enjoying those little silly messages, they are straight from the heart. You're the best! 💖",
+            },
+            4: {
+                title: "Good! That’s exactly how I want to be 😜",
+                text: "Crazy about you, obsessed with you—call it whatever! You deserve all the attention. Periodt. 👑",
+            },
+            5: {
+                title: "Yesss, I was hoping you’d say that! 🤗",
+                text: "Consider that hug stolen the next time I see you! Can't wait. 🫂",
+            },
+            6: {
+                title: "OH MY GOD! MY RASMALAIIII KNOWS ME SO WELL! 🥺",
+                text: "YESSS! I absolutely adore that you love this name! It's our special, secret word, and I'm never going to stop calling you my sweet Rasmalaiii. 😉",
+            },
+        };
+        
+        const SPECIAL_Q7_ALMOST_TEXT = {
+            title: "Aww, So Sweet! (But Think A Little Harder!) 🤏",
+            text: "I like this one very much too, but there's something I love even more!",
+            retry_text: "One More Guess! Try Again 🔄"
+        };
+        
+        const Q7_THANK_YOU_MESSAGE = `
+            Do you like my little efforts, Janu? 🥹 
+            
+            I know it's not the most special, and maybe not the most perfect surprise, but I promise I will work so hard to make every moment with you special and perfect.
+            
+            Thank you for being such a good sport and for completing this silly quiz! Thank you for seeing this full thing through. ❤️
+        `;
+
+
+        // --- General Feedback Text ---
+        const GENERAL_CORRECT_TITLE = "Right guess! You win 7 Crore! 😎";
+        const GENERAL_CORRECT_TEXT = '<span style="color:#ffeb3b; text-shadow: 1px 1px 2px #d57eeb;">Every guess you make is perfect!</span>';
+        const GENERAL_WRONG_TITLE = 'Oh No! 😿';
+        const GENERAL_WRONG_TEXT = 'Try to guess a little better! 😥';
+        const GENERAL_RETRY_TEXT = 'Go Back & Try Again';
+
+
+        // --- Core Variables ---
+        const CANDLE_IMAGES = {
+            '0': 'candle-digit-0.png', '1': 'candle-digit-1.png', '2': 'candle-digit-2.png',
+            '3': 'candle-digit-3.png', '4': 'candle-digit-4.png', '5': 'candle-digit-5.png',
+            '6': 'candle-digit-6.png', '7': 'candle-digit-7.png', '8': 'candle-digit-8.png',
+            '9': 'candle-digit-9.png',
+        };
+        const CAKE_SLICED_IMAGE = 'cake-slice.jpg'; 
+        let actionTimer;
+        let pressStartTime;
+        const ACTION_DURATION = 1300; 
+        
+        const slideshowMusic = document.getElementById('slideshow-music'); 
+        const mixtapeSong = document.getElementById('mixtape-song'); 
+        const galleryMusic = document.getElementById('gallery-music');
+
+        
+        // --- 3D Carousel Logic (FIXED TOUCH RESPONSE) ---
+        let isDragging = false;
+        let startX, startY;
+        let cylinderRotationY = 0; 
+        let cylinderRotationX = -15; 
+        const cylinder = document.querySelector('.cylinder');
+        
+        if (cylinder) {
+            cylinder.style.transform = `rotateX(${cylinderRotationX}deg) rotateY(${cylinderRotationY}deg)`;
+
+            cylinder.addEventListener('mousedown', startDrag);
+            cylinder.addEventListener('touchstart', startDrag, { passive: false }); // Passive: false is important for touchmove
+        }
+
+        function startDrag(e) {
+            // Check for multi-touch (important for mobile)
+            if (e.touches && e.touches.length > 1) return;
+            // Prevent default scroll/zoom/context menu
+            e.preventDefault(); 
+
+            isDragging = true;
+            cylinder.classList.add('paused'); 
+            const clientX = e.clientX || (e.touches ? e.touches[0].clientX : undefined);
+            const clientY = e.clientY || (e.touches ? e.touches[0].clientY : undefined);
+            if (clientX === undefined || clientY === undefined) return;
+            startX = clientX;
+            startY = clientY;
+            cylinder.style.cursor = 'grabbing';
+            
+            // Add listeners to the window/document to ensure drag doesn't break if touch moves outside the cylinder div
+            window.addEventListener('mousemove', dragMove);
+            window.addEventListener('mouseup', dragEnd);
+            window.addEventListener('touchmove', dragMove, { passive: false });
+            window.addEventListener('touchend', dragEnd);
+        };
+
+        function dragMove(e) {
+            if (!isDragging) return;
+            // Prevent default scroll/zoom on touchmove
+            e.preventDefault(); 
+            
+            const clientX = e.clientX || (e.touches ? e.touches[0].clientX : undefined);
+            const clientY = e.clientY || (e.touches ? e.touches[0].clientY : undefined);
+            if (clientX === undefined || clientY === undefined) return;
+            
+            const deltaX = clientX - startX;
+            const deltaY = clientY - startY;
+            
+            // Increased sensitivity slightly for better mobile feel
+            const sensitivity = 0.5; 
+            
+            cylinderRotationY += deltaX * sensitivity;
+            cylinderRotationX -= deltaY * sensitivity * 0.5;
+            
+            // Clamp X rotation to prevent flipping
+            cylinderRotationX = Math.min(Math.max(-80, cylinderRotationX), 80); 
+            
+            cylinder.style.transform = `rotateX(${cylinderRotationX}deg) rotateY(${cylinderRotationY}deg)`;
+            
+            startX = clientX;
+            startY = clientY;
+        };
+
+        function dragEnd() {
+            if (!isDragging) return;
+            isDragging = false;
+            cylinder.style.cursor = 'grab';
+            
+            // Remove listeners from the window/document
+            window.removeEventListener('mousemove', dragMove);
+            window.removeEventListener('mouseup', dragEnd);
+            window.removeEventListener('touchmove', dragMove);
+            window.removeEventListener('touchend', dragEnd);
+            
+            // Re-apply the rotation animation after a tiny delay
+            const currentAngle = cylinderRotationY % 360;
+            const effectiveAngle = currentAngle < 0 ? currentAngle + 360 : currentAngle;
+            cylinder.style.animation = `spinCylinder 30s infinite linear`;
+            cylinder.style.animationDelay = `-${(effectiveAngle / 360) * 30}s`;
+            
+            setTimeout(() => {
+                cylinder.classList.remove('paused');
+            }, 50); 
+        };
+        
+        // --- MIRROR OF MEMORIES LOGIC ---
+        const MEMORIES_DATA = [
+            { 
+                img: "photo1.jpg", 
+                quote: "Every chapter of my life is better because you're in it. Thank you for our beginning. 💖",
+                caption: "This smile... my forever favorite"
+            },
+            { 
+                img: "photo2.jpg", 
+                quote: "You turn my ordinary days into something magical. My heart smiles whenever I see you. 😊",
+                caption: "You are the sweetest, my Rasmalai."
+            },
+            { 
+                img: "photo3.jpg", 
+                quote: "Our silly secrets and shared laughter are the best part of my day, every day. ✨",
+                caption: "Our laughs are the best sound."
+            },
+            { 
+                img: "photo4.jpg", 
+                quote: "No matter where we are, being with you feels like home. You are my anchor. 🏡",
+                caption: "My heart finds its home in you."
+            },
+            { 
+                img: "photo5.jpg", 
+                quote: "Your kindness and strength inspire me. I am so lucky to have my Rasmalai! 🥂",
+                caption: "My inspiration, my love."
+            },
+            { 
+                img: "photo6.jpg", 
+                quote: "Loving you is the easiest thing I've ever done. Here's to many more memories together! ❤️",
+                caption: "Forever us."
+            },
+        ];
+
+        let currentMemoryIndex = 0;
+        const carouselTrack = document.querySelector('.carousel-track');
+        const loveQuoteText = document.getElementById('love-quote-text');
+        const prevBtnCarousel = document.getElementById('prev-btn-carousel');
+        const nextBtnCarousel = document.getElementById('next-btn-carousel');
+        const memoriesNextBtn = document.getElementById('memories-next-btn');
+
+        function createMemoryCards() {
+            carouselTrack.innerHTML = '';
+            MEMORIES_DATA.forEach((data, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.dataset.index = index;
+                
+                card.innerHTML = `
+                    <img src="${data.img}" alt="Memory Photo ${index + 1}">
+                    <div class="card-caption">${data.caption}</div>
+                `;
+                carouselTrack.appendChild(card);
+            });
+            updateCarouselDisplay(false);
+        };
+
+        function updateCarouselDisplay(animate = true) {
+            const cards = document.querySelectorAll('.memory-card');
+            
+            loveQuoteText.innerText = MEMORIES_DATA[currentMemoryIndex].quote;
+
+            cards.forEach(card => {
+                const index = parseInt(card.dataset.index);
+                card.classList.remove('active', 'prev', 'next', 'hidden');
+                
+                let className;
+                const total = MEMORIES_DATA.length;
+                
+                // Simplified card positioning logic
+                if (index === currentMemoryIndex) {
+                    className = 'active';
+                } else if (index === currentMemoryIndex - 1) {
+                    className = 'prev';
+                } else if (index === currentMemoryIndex + 1) {
+                    className = 'next';
+                } else {
+                    className = 'hidden';
+                }
+                
+                // Add logic for wrap-around for the visual effect (optional but good practice)
+                if (currentMemoryIndex === 0 && index === total - 1) {
+                    className = 'prev';
+                } else if (currentMemoryIndex === total - 1 && index === 0) {
+                    className = 'next';
+                }
+                
+                card.classList.add(className);
+            });
+            
+            // Ensure buttons only work on the first and last slides, not circular
+            prevBtnCarousel.disabled = currentMemoryIndex === 0;
+            nextBtnCarousel.disabled = currentMemoryIndex === MEMORIES_DATA.length - 1;
+            
+            if (currentMemoryIndex === MEMORIES_DATA.length - 1) {
+                memoriesNextBtn.style.display = 'block';
+            } else {
+                memoriesNextBtn.style.display = 'none';
+            }
+        };
+
+        function nextMemory() {
+            if (currentMemoryIndex < MEMORIES_DATA.length - 1) {
+                currentMemoryIndex++;
+                updateCarouselDisplay();
+            }
+        };
+
+        function prevMemory() {
+            if (currentMemoryIndex > 0) {
+                currentMemoryIndex--;
+                updateCarouselDisplay();
+            }
+        };
+
+        function initializeMemories() {
+            playSlideshowMusic(); 
+            currentMemoryIndex = 0;
+            createMemoryCards();
+            updateCarouselDisplay(false);
+        };
+        
+        // --- Initialization Function for iOS Media Unlock ---
+        function initializeApp() {
+            // Preload and "touch" all media elements to unlock them on iOS/Android
+            [slideshowMusic, mixtapeSong, galleryMusic].forEach(audio => {
+                if (audio) {
+                    audio.load();
+                    audio.muted = true;
+                    audio.play().catch(() => {});
+                    audio.pause();
+                    audio.muted = false;
+                }
+            });
+            
+            // Do the same for Sad Cat video
+            const sadVideo = document.getElementById('feedback-video-sad');
+            if (sadVideo) {
+                sadVideo.load();
+                sadVideo.muted = true;
+                sadVideo.play().catch(() => {});
+                sadVideo.pause();
+                sadVideo.muted = false;
+            }
+        };
+
+        // --- Music/Slideshow/Video Functions (FIXED VIDEO START) ---
+        
+        function playSlideshowMusic() {
+            if (slideshowMusic) {
+                slideshowMusic.volume = 0.6;
+                slideshowMusic.play().catch(error => console.log("Slideshow Music auto-play blocked.", error));
+            }
+        };
+        
+        function stopSlideshowMusic() {
+            if (slideshowMusic) {
+                slideshowMusic.pause();
+                slideshowMusic.currentTime = 0;
+            }
+        };
+        
+        function playGalleryMusic() {
+            if (galleryMusic) {
+                galleryMusic.volume = 0.6;
+                galleryMusic.play().catch(error => console.log("Gallery Music auto-play blocked.", error));
+            }
+        };
+        
+        function stopGalleryMusic() {
+            if (galleryMusic) {
+                galleryMusic.pause();
+                galleryMusic.currentTime = 0;
+            }
+        };
+        
+        function toggleMixtapeMusic(play) {
+            if (mixtapeSong) {
+                mixtapeSong.volume = 0.8;
+                if (play) {
+                    mixtapeSong.play().catch(error => console.log("Mixtape auto-play blocked.", error));
+                } else {
+                    mixtapeSong.pause();
+                    mixtapeSong.currentTime = 0;
+                }
+            }
+        };
+        
+        function stopFeedbackVideos() {
+            const sadVideo = document.getElementById('feedback-video-sad');
+            const danceVideo = document.getElementById('feedback-video-dance');
+            const specialVideo = document.getElementById('feedback-video-special');
+            const almostVideo = document.getElementById('feedback-video-almost');
+            
+            // Pause and reset all videos
+            [sadVideo, danceVideo, specialVideo, almostVideo].forEach(video => {
+                if (video) {
+                    video.pause(); 
+                    video.currentTime = 0; 
+                    video.style.display = 'none';
+                }
+            });
+
+            // Reset visibility
+            if (sadVideo) sadVideo.style.display = 'block'; 
+            if (danceVideo) danceVideo.style.display = 'block'; 
+            
+            // Reset text
+            document.getElementById('correct-feedback-title').innerText = GENERAL_CORRECT_TITLE;
+            document.getElementById('correct-feedback-text').innerHTML = GENERAL_CORRECT_TEXT;
+            document.getElementById('next-q-btn').innerText = 'Next Question ➡️';
+            document.getElementById('wrong-feedback-title').innerText = GENERAL_WRONG_TITLE;
+            document.getElementById('wrong-feedback-text').innerText = GENERAL_WRONG_TEXT;
+            document.getElementById('wrong-retry-prompt').innerText = 'Try Again!';
+            document.getElementById('retry-btn').innerText = GENERAL_RETRY_TEXT;
+        };
+
+        // FIXED: Explicitly check and play video, ensuring it's unmuted (if possible)
+        function startVideo(videoId) {
+            const video = document.getElementById(videoId);
+            if (video) {
+                video.style.display = 'block';
+                video.volume = 0.8;
+                video.currentTime = 0; 
+                video.muted = false; // Ensure it tries to play sound
+                
+                // Attempt to play, handling the promise in case of failure
+                video.play().catch(error => {
+                    console.error(`Video play failed for ${videoId}:`, error);
+                    // If play fails (e.g., sound issue), try again muted
+                    if (video.muted === false) {
+                        video.muted = true;
+                        video.play().catch(e => console.error("Muted play failed too:", e));
+                    }
+                });
+            }
+        };
+        
+        // --- Page Navigation and Typing Effect ---
+        function nextPage(currentId, nextId) {
+            document.getElementById(currentId).classList.remove('active');
+            
+            // --- STOP LOGIC ---
+            if (currentId === 'song-break') { 
+                toggleMixtapeMusic(false);
+            } else if (currentId === 'cylinder-gallery') {
+                stopGalleryMusic();
+            } else if (currentId === 'memories') { 
+                stopSlideshowMusic(); 
+            }
+            
+            // --- START LOGIC ---
+            if (nextId === 'message-reveal') {
+                typeMessage('typing-text-2', 'Happy Birthday My Rasmalaiiii, Cutuuu Babyyy, Moti, and the only girl who makes me go crazy! I hope this small effort makes you smile even a little bit. You deserve the world, and I promise to try and give it to you. You are my everything. ❤️', 50);
+            } else if (nextId === 'cylinder-gallery') {
+                playGalleryMusic();
+            } else if (nextId === 'memories') {
+                initializeMemories();
+            } else if (nextId === 'q7-thank-you') {
+                typeMessage('typing-text-thankyou', Q7_THANK_YOU_MESSAGE, 50);
+            } else if (nextId === 'final-results') {
+                confetti({
+                    particleCount: 200,
+                    spread: 180,
+                    origin: { y: 0.5 },
+                    colors: ['#ffeb3b', '#d57eeb', '#fff']
+                });
+                typeMessage('typing-text-final', `Total Correct Guesses: ${score} / 7. You are absolutely amazing and know me better than anyone! Thank you for this perfect birthday memory. Love you always, my Rasmalai!`, 50);
+            }
+            
+            setTimeout(() => {
+                document.getElementById(nextId).classList.add('active');
+            }, 100); 
+        };
+
+        function typeMessage(elementId, message, delay) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = '';
+            let i = 0;
+            function typing() {
+                if (i < message.length) {
+                    element.innerHTML += message.charAt(i);
+                    i++;
+                    setTimeout(typing, delay);
+                }
+            }
+            typing();
+        };
+
+        // --- Cake & Action Logic (Unchanged) ---
+        function setAgeAndCandles() {
+            const ageInput = document.getElementById('age-input');
+            const ageError = document.getElementById('age-error');
+            const age = ageInput.value.trim();
+
+            if (!age || age < 1 || age > 99) {
+                ageError.innerText = "Please enter a valid age (1-99).";
+                return;
+            };
+            ageError.innerText = "";
+            
+            const ageString = age.toString();
+            const candlesContainer = document.getElementById('candles-container');
+            candlesContainer.innerHTML = '';
+
+            for (let i = 0; i < ageString.length; i++) {
+                const digit = ageString[i];
+                const candleUnit = document.createElement('div');
+                candleUnit.className = 'candle-unit';
+                
+                const flame = document.createElement('div');
+                flame.className = 'flame';
+                
+                const candleImage = document.createElement('img');
+                candleImage.src = CANDLE_IMAGES[digit];
+                candleImage.className = 'candle-digit-img';
+                
+                candleUnit.appendChild(flame);
+                candleUnit.appendChild(candleImage);
+                candlesContainer.appendChild(candleUnit);
+            }
+            nextPage('age-input-section', 'cake-section');
+        };
+
+        function startBlowTimer() {
+            pressStartTime = Date.now();
+            document.getElementById('blow-btn').innerText = 'BLOWING... 🔥';
+            actionTimer = setTimeout(blowOutCandles, ACTION_DURATION);
+        };
+
+        function blowOutCandles() {
+            confetti({
+                particleCount: 150,
+                spread: 90,
+                origin: { x: 0.5, y: 0.5 },
+                colors: ['#ffeb3b', '#d57eeb', '#fff']
+            });
+            
+            const flames = document.querySelectorAll('.flame');
+            flames.forEach(flame => {
+                flame.classList.add('off');
+            });
+            document.getElementById('action-text').innerText = 'Make a wish granted! Now, tap and hold the CUT button for 1.3 seconds to cut the cake! 🎂';
+            document.getElementById('blow-btn').style.display = 'none';
+            
+            const cutBtn = document.getElementById('cut-btn');
+            cutBtn.style.display = 'block';
+            cutBtn.disabled = false;
+            
+            clearTimeout(actionTimer);
+        };
+        
+        const SLOW_CUT_DURATION = 1500;
+
+        function startCutTimer() {
+            pressStartTime = Date.now();
+            document.getElementById('cut-btn').innerText = 'CUTTING... 🔪'; 
+            actionTimer = setTimeout(cutTheCake, ACTION_DURATION); 
+        };
+
+        function cutTheCake() {
+            const knife = document.getElementById('knife-img');
+            const cakeBase = document.getElementById('cake-base-img');
+
+            knife.style.opacity = '1';
+            knife.classList.add('cutting');
+            knife.style.transform = 'translateX(-50%) rotate(10deg)';
+
+            setTimeout(() => {
+                cakeBase.src = CAKE_SLICED_IMAGE; 
+                
+                setTimeout(() => {
+                    knife.style.opacity = '0';
+                    knife.classList.remove('cutting'); 
+                    knife.style.transform = 'translateX(-50%) rotate(0deg)'; 
+                    
+                    document.getElementById('action-text').innerText = 'Cake cut successfully! Time for the birthday message. 😉';
+                    document.getElementById('cut-btn').disabled = true;
+
+                    setTimeout(() => {
+                        nextPage('cake-section', 'message-reveal');
+                    }, 1000); 
+                }, 500);
+            }, SLOW_CUT_DURATION); 
+
+            clearTimeout(actionTimer);
+        };
+
+        function cancelActionTimer(actionType) {
+            clearTimeout(actionTimer);
+            const pressDuration = Date.now() - pressStartTime;
+            const requiredDuration = ACTION_DURATION; 
+
+            if (pressDuration < requiredDuration) {
+                if (actionType === 'blow') {
+                    document.getElementById('blow-btn').innerText = 'BLOW 🔥';
+                } else {
+                    document.getElementById('cut-btn').innerText = 'CUT 🔪';
+                }
+            }
+        };
+
+        // --- Quiz Logic (FIXED VIDEO CALLS) ---
+        let lastQuestionAnswered = 0; 
+
+        function checkAnswer(questionNum, selectedOption) {
+            lastQuestionAnswered = questionNum;
+            const isCorrect = (selectedOption === CORRECT_ANSWERS[questionNum]);
+            
+            const buttons = document.querySelectorAll(`#q${questionNum} .btn`);
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                score++;
+                showCorrectFeedback(questionNum);
+            } else {
+                showWrongFeedback(questionNum, selectedOption);
+            }
+        };
+
+        function showCorrectFeedback(questionNum) {
+            stopFeedbackVideos();
+            nextPage(`q${questionNum}`, 'correct-answer-feedback');
+            
+            if (CUSTOM_CORRECT_TEXTS[questionNum]) {
+                document.getElementById('correct-feedback-title').innerText = CUSTOM_CORRECT_TEXTS[questionNum].title;
+                document.getElementById('correct-feedback-text').innerHTML = CUSTOM_CORRECT_TEXTS[questionNum].text;
+            } else {
+                 document.getElementById('correct-feedback-title').innerText = GENERAL_CORRECT_TITLE;
+                 document.getElementById('correct-feedback-text').innerHTML = GENERAL_CORRECT_TEXT;
+            }
+            
+            if (questionNum === 7) {
+                document.getElementById('correct-feedback-title').innerText = "YESSS! MY JANUUU! ❤️";
+                document.getElementById('correct-feedback-text').innerHTML = 'You are the absolute best! You know my heart! <span style="color:#ffeb3b; text-shadow: 1px 1px 2px #d57eeb;">Janu is the one I love the most!</span>';
+                document.getElementById('next-q-btn').innerText = 'Read My Heart 🥹';
+                startVideo('feedback-video-special');
+                document.getElementById('feedback-video-dance').style.display = 'none';
+            } else {
+                startVideo('feedback-video-dance');
+            }
+        };
+
+        function showWrongFeedback(questionNum, selectedOption) {
+            stopFeedbackVideos();
+            nextPage(`q${questionNum}`, 'wrong-answer-feedback');
+            
+            if (questionNum === 7 && (selectedOption === 2 || selectedOption === 3 || selectedOption === 4)) {
+                document.getElementById('wrong-feedback-title').innerText = SPECIAL_Q7_ALMOST_TEXT.title;
+                document.getElementById('wrong-feedback-text').innerText = SPECIAL_Q7_ALMOST_TEXT.text;
+                document.getElementById('wrong-retry-prompt').innerText = SPECIAL_Q7_ALMOST_TEXT.retry_text;
+                startVideo('feedback-video-almost');
+                document.getElementById('feedback-video-sad').style.display = 'none';
+            } else {
+                // FIXED: Explicitly calling sad cat video
+                startVideo('feedback-video-sad');
+            }
+        };
+
+        function retryQuestion() {
+            const buttons = document.querySelectorAll(`#q${lastQuestionAnswered} .btn`);
+            buttons.forEach(btn => btn.disabled = false);
+            
+            nextPage('wrong-answer-feedback', `q${lastQuestionAnswered}`);
+        };
+
+        function nextQuestion() {
+            stopFeedbackVideos();
+            currentQuestion++;
+            
+            if (currentQuestion === 5) {
+                nextPage('correct-answer-feedback', 'song-break');
+            } else if (currentQuestion <= 7) {
+                nextPage('correct-answer-feedback', `q${currentQuestion}`);
+            } else {
+                nextPage('correct-answer-feedback', 'q7-thank-you');
+            }
+        };
+
+    </script>
+</body>
+</html>
